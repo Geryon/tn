@@ -1,0 +1,81 @@
+#!/bin/bash
+
+##
+## Generate Thumbnails and an index.html in a galleryesque fashion
+## Nicholas DeClario <nick@demandred.dyndns.org>
+## February 2011
+## $Id: tn,v 1.1 2011-02-16 13:31:25 nick Exp $
+##
+## I'm not using any additional methods to pull in command line options
+## at this time so it works as follows.
+##
+## tn html_file thumb_size columns_in_page
+##
+## If you want to specify the columns you must also specify the html_file
+## and thumb_size first, for example:
+##
+## tn index.html 64 3
+##
+## The defaults, if nothing is specifed is 'index.html' for the html file,
+## 64x64 for the thumbnail size and 6 columns.
+##
+
+HTML=${1:-index.html}
+TN_SIZE=${2:-64}
+MAX_COL=${3:-6}
+TN_DIR=thumbs
+TITLE="`hostname`:`pwd`"
+FILE_TYPES="jpg png jpeg gif"
+
+[ -d $TN_DIR ] || mkdir $TN_DIR
+
+cat <<EOF>$HTML
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>$TITLE</title>
+  </head>
+  <body bgcolor="#F2F2F2">
+<h1>$TITLE</h1>
+<table align="center" border="0">
+<tr>
+EOF
+
+CNT=0
+for i in $FILE_TYPES; do
+	for n in `find -maxdepth 1 -type f -iname \*.$i`; do 
+		TN=`basename $n .$i`-tn.$i;
+		convert -resize $TN_SIZE $n $TN_DIR/$TN
+		[ $CNT -ge $MAX_COL ] && \
+		{
+			echo -e "</tr>\n<tr>" >>$HTML
+			CNT=0
+		}
+
+		cat <<EOF>>$HTML
+<td align="center" valign="middle">
+<a href="$n"><img src="$TN_DIR/$TN" alt="$n" border="0"></a>&nbsp;
+</td>
+EOF
+		CNT=$(( CNT + 1 ))
+	done
+done
+
+cat <<EOF>>$HTML
+</tr>
+<tr>
+<td colspan="$MAX_COL">
+<hr/>
+<center>
+	<font size="0">
+		Generated on `date` with command '$0 $*' by `whoami`
+	</font>
+</center>
+</td>
+</tr>
+</table>
+</body>
+</html>
+EOF
