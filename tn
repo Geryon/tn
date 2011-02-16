@@ -4,25 +4,27 @@
 ## Generate Thumbnails and an index.html in a galleryesque fashion
 ## Nicholas DeClario <nick@demandred.dyndns.org>
 ## February 2011
-## $Id: tn,v 1.1 2011-02-16 13:31:25 nick Exp $
+## $Id: tn,v 1.2 2011-02-16 13:54:17 nick Exp $
 ##
 ## I'm not using any additional methods to pull in command line options
 ## at this time so it works as follows.
 ##
-## tn html_file thumb_size columns_in_page
+## tn html_file thumb_size columns_in_page filename_on
 ##
 ## If you want to specify the columns you must also specify the html_file
 ## and thumb_size first, for example:
 ##
-## tn index.html 64 3
+## tn index.html 64 3 
 ##
 ## The defaults, if nothing is specifed is 'index.html' for the html file,
-## 64x64 for the thumbnail size and 6 columns.
+## 64x64 for the thumbnail size, 6 images row and filenames under the 
+## images disabled.
 ##
 
 HTML=${1:-index.html}
 TN_SIZE=${2:-64}
 MAX_COL=${3:-6}
+FNAMES=${4:-0}
 TN_DIR=thumbs
 TITLE="`hostname`:`pwd`"
 FILE_TYPES="jpg png jpeg gif"
@@ -54,9 +56,13 @@ for i in $FILE_TYPES; do
 			CNT=0
 		}
 
+		[ $FNAMES -eq 0 ] || \
+			IMAGE_NAME="<br/><font size=\"0\">`basename $n`</font>"
+
 		cat <<EOF>>$HTML
 <td align="center" valign="middle">
-<a href="$n"><img src="$TN_DIR/$TN" alt="$n" border="0"></a>&nbsp;
+<a href="$n"><img src="$TN_DIR/$TN" alt="$n" border="0" /></a>&nbsp;
+$IMAGE_NAME
 </td>
 EOF
 		CNT=$(( CNT + 1 ))
@@ -72,6 +78,11 @@ cat <<EOF>>$HTML
 	<font size="0">
 		Generated on `date` with command '$0 $*' by `whoami`
 	</font>
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-xhtml10" border="0"
+        alt="Valid XHTML 1.0 Transitional" height="31" width="88" /></a>
+  </p>
 </center>
 </td>
 </tr>
