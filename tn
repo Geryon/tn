@@ -1,10 +1,10 @@
 #!/bin/bash
-
+################################################################################
 ##
 ## Generate Thumbnails and an index.html in a galleryesque fashion
 ## Nicholas DeClario <nick@demandred.dyndns.org>
 ## February 2011
-## $Id: tn,v 1.3 2011-02-16 14:17:47 nick Exp $
+## $Id: tn,v 1.4 2011-02-18 18:53:59 nick Exp $
 ##
 ## I'm not using any additional methods to pull in command line options
 ## at this time so it works as follows.
@@ -20,16 +20,172 @@
 ## 64x64 for the thumbnail size, 6 images row and filenames under the 
 ## images disabled.
 ##
+################################################################################
 
-HTML=${1:-index.html}
-TN_SIZE=${2:-64}
-MAX_COL=${3:-6}
-FNAMES=${4:-0}
-DIRECTORIES=${5:-0}
-
+HTML="index.html"
+TN_SIZE=64
+MAX_COL=6
+FNAMES=0
+DIRECTORIES=0
 TN_DIR=thumbs
+
 TITLE="`hostname`:`pwd`"
-FILE_TYPES="jpg png jpeg gif"
+FILE_TYPES='jpg png jpeg gif'
+
+###############################################################################
+##
+## help( )
+## 
+##    Display the basic help text
+##
+###############################################################################
+help( ) {
+        cat <<EOF
+Usage:
+    $0 [options]
+
+    Options:
+	   --columns	Number of columns for images (default 6)
+	   --dir	Enable links for sub directories (default off)
+	   --filenames	Display filename of image below thumbnail (default off)
+           --help,?     Display the basic help menu
+	   --htmlfile	HTML filename to write to (default index.html)
+           --man,m      Display the detailed man page
+	   --size	Set the thumbnail size (default 64x64)
+	   --title	Title of HTML page (default 'hostname - current dir') 
+	   --tndir	Thumbnail directory (default thumbs)
+           --version    Display the version
+
+EOF
+
+        exit 1
+}
+
+
+###############################################################################
+##
+## man( )
+##
+##      Display the detailed man page
+##
+###############################################################################
+man( ) {
+        cat <<EOF | nroff -man
+.TH template.sh 1 "`date`" 
+.SH NAME
+tn \- Thumbnail and HTML "gallery-esque" generator
+.SH SYNOPSIS
+.B tn
+[ name ...  ]
+.SH DESCRIPTION
+.I tn
+is a script that will generate a gallery-esque HTML page.  It will create thumbnails of all your images and sort them in to a web page.  There are many options and features.
+.SH OPTIONS
+.IP "--columns <number of columns>"
+When generating the HTML output the script will split the thumbnails up in to rows and columns.  The number of rows varies as necessary but the number of columns or items per row can be specified with this option.  The default is 6 items per row or 6 columns.
+.SH "SEE ALSO"
+man(1)	convert(1)
+.SH "BUGS"
+.I Template.sh
+is a work in progress.  Please report bugs.
+.SH "COPYRIGHT NOTICE"
+Copyright \(co 2006 Free Software Foundation, Inc.
+.br
+Copyright \(co 2011 Nicholas DeClario
+.PP
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+.ig
+Permission is granted to process this file through troff and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+..
+.PP
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+.PP
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Foundation.
+EOF
+        exit 1;
+}
+
+###############################################################################
+## End of shell function definitions
+###############################################################################
+
+##
+##  We are going to read in our basic set of options and parse everything 
+##  out.  Setting NOARGS to 1 at the top of this script will tell getOpts 
+##  to call 'help' if no arguments are supplied on the command line.
+##
+
+##
+## Parse through our command line arguments here
+##
+while [ $# -gt 0 ]
+do
+        arg=$1
+        shift
+
+        case $arg in
+		--columns)
+			MAX_COL=$1
+			shift
+			;;
+		--dir)
+			DIRECTORIES=1
+			;;
+		--filenames)
+			FNAMES=1
+			;;
+		--htmlfile)
+			HTML=$1
+			shift
+			;;
+                --man)
+                        man
+                        break
+                        ;;
+		--size)
+			TN_SIZE=$1
+			shift
+			;;
+		--title)
+			TITLE=$1
+			shift
+			;;
+		--tndir)
+			TN_DIR=$1
+			shift
+			;;
+                --version)
+                        echo "Version: $VERSION"
+                        break
+                        ;;
+                *)
+                        help
+                        break
+                        ;;
+        esac
+done
+
+##
+## Make sure imagemagick is installed
+##
+CONVERT=/usr/bin/convert
+[ -x $CONVERT ] || \
+{
+	echo "ERROR: Imagemagick not found"
+	exit 1
+}
+
 
 [ -d $TN_DIR ] || mkdir $TN_DIR
 
@@ -39,7 +195,7 @@ cat <<EOF>$HTML
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-    <title>$TITLE</title>
+    <title>$TITLE</tERROR: itle>
   </head>
   <body bgcolor="#F2F2F2">
 <h1>$TITLE</h1>
@@ -47,11 +203,13 @@ cat <<EOF>$HTML
 <tr>
 EOF
 
+TIFS=$IFS
 CNT=0
 for i in $FILE_TYPES; do
+	IFS=$(echo -en "\n\b")
 	for n in `find -maxdepth 1 -type f -iname \*.$i`; do 
 		TN=`basename $n .$i`-tn.$i;
-		convert -resize $TN_SIZE $n $TN_DIR/$TN
+		$CONVERT -resize $TN_SIZE $n $TN_DIR/$TN
 		[ $CNT -ge $MAX_COL ] && \
 		{
 			echo -e "</tr>\n<tr>" >>$HTML
@@ -74,16 +232,18 @@ done
 ##
 ## Link directories if enabled
 ##
+IFS=$(echo -en "\n\b")
 [ $DIRECTORIES -eq 0 ] || \
 {
 	echo -e "</tr>\n<tr>\n<td colspan=\"$MAX_COL\">\n\t<ul>"
 	for dir in `find . -maxdepth 1 -type d`; do
 		dir=`basename $dir`
 		[ "$dir" != "$TN_DIR" ] && [ "$dir" != "." ] && \
-			echo -e "\t\t<li><a href="$dir">$dir</a></li>"
+			echo -e "\t\t<li><a href=\"$dir\">$dir</a></li>"
 	done
 	echo -e "\t</ul>\n</td>"
 } >> $HTML
+IFS=$TIFS
 
 cat <<EOF>>$HTML
 </tr>
