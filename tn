@@ -1,36 +1,30 @@
 #!/bin/bash
 ################################################################################
 ##
-## Generate Thumbnails and an index.html in a galleryesque fashion
+## Generate Thumbnails and an index.html in a gallery-esque fashion
 ## Nicholas DeClario <nick@demandred.dyndns.org>
 ## February 2011
-## $Id: tn,v 1.4 2011-02-18 18:53:59 nick Exp $
+## $Id: tn,v 1.5 2011-02-19 13:53:48 nick Exp $
 ##
-## I'm not using any additional methods to pull in command line options
-## at this time so it works as follows.
-##
-## tn html_file thumb_size columns_in_page filename_on add_directory_links
-##
-## If you want to specify the columns you must also specify the html_file
-## and thumb_size first, for example:
-##
-## tn index.html 64 3 
-##
-## The defaults, if nothing is specifed is 'index.html' for the html file,
-## 64x64 for the thumbnail size, 6 images row and filenames under the 
-## images disabled.
+##   Please use the '--man' option for details on how this works.  Running
+##   with no options will fall back to defaults and should work fine for
+##   most cases.  The defaults are listed below; feel free to change them.
 ##
 ################################################################################
 
+##
+## These are default options, feel free to manipulate these.
+##
 HTML="index.html"
 TN_SIZE=64
 MAX_COL=6
 FNAMES=0
 DIRECTORIES=0
 TN_DIR=thumbs
-
 TITLE="`hostname`:`pwd`"
+
 FILE_TYPES='jpg png jpeg gif'
+VERSION=$Id: tn,v 1.5 2011-02-19 13:53:48 nick Exp $
 
 ###############################################################################
 ##
@@ -76,22 +70,40 @@ man( ) {
 tn \- Thumbnail and HTML "gallery-esque" generator
 .SH SYNOPSIS
 .B tn
-[ name ...  ]
+[ options ]
 .SH DESCRIPTION
 .I tn
 is a script that will generate a gallery-esque HTML page.  It will create thumbnails of all your images and sort them in to a web page.  There are many options and features.
 .SH OPTIONS
 .IP "--columns <number of columns>"
 When generating the HTML output the script will split the thumbnails up in to rows and columns.  The number of rows varies as necessary but the number of columns or items per row can be specified with this option.  The default is 6 items per row or 6 columns.
+.IP "--dir"
+Enabling this will allow the script to list the subdirectories that were found.  It will place this list, with proper links in the HTML file.  This is extremely handy when running this script recursivly.  The default is off for this option. See below for running recursivly.
+.IP "--filenames"
+This will display the filename of the image below it's thumbnail in the HTML page.  This is off by default.
+.IP "--help,?"
+Display the basic help menu
+.IP "--htmlfile filename.html"
+The output is all dumped to HTML and saved to a file, by default index.html.  The default can be changed by using this option.
+.IP "--man,m"
+Display the detailed man page
+.IP "--size <size XxY>"
+This sets the default thumbnail size to pass to Imagemagick.  The default is 64x64.
+.IP "--title <title>"
+The page has a default title and header.  This will statically set that header.
+.IP "--tndir <directory name>"
+The thumbnails can be saved in a seperate directory.  This directory name may not exist in some areas making this a very handy option.
+ "--version"
+Display the version
 .SH "SEE ALSO"
 man(1)	convert(1)
 .SH "BUGS"
 .I Template.sh
 is a work in progress.  Please report bugs.
 .SH "COPYRIGHT NOTICE"
-Copyright \(co 2006 Free Software Foundation, Inc.
+Copyright (c) 2006 Free Software Foundation, Inc.
 .br
-Copyright \(co 2011 Nicholas DeClario
+Copyright (c) 2011 Nicholas DeClario
 .PP
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
