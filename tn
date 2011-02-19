@@ -4,7 +4,7 @@
 ## Generate Thumbnails and an index.html in a gallery-esque fashion
 ## Nicholas DeClario <nick@demandred.dyndns.org>
 ## February 2011
-## $Id: tn,v 1.5 2011-02-19 13:53:48 nick Exp $
+## $Id: tn,v 1.6 2011-02-19 14:22:05 nick Exp $
 ##
 ##   Please use the '--man' option for details on how this works.  Running
 ##   with no options will fall back to defaults and should work fine for
@@ -24,7 +24,7 @@ TN_DIR=thumbs
 TITLE="`hostname`:`pwd`"
 
 FILE_TYPES='jpg png jpeg gif'
-VERSION=$Id: tn,v 1.5 2011-02-19 13:53:48 nick Exp $
+VERSION="$Id: tn,v 1.6 2011-02-19 14:22:05 nick Exp $"
 
 ###############################################################################
 ##
