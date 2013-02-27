@@ -4,7 +4,7 @@
 ## Generate Thumbnails and an index.html in a gallery-esque fashion
 ## Nicholas DeClario <nick@demandred.dyndns.org>
 ## February 2011
-## $Id: tn,v 1.7 2011-02-24 13:57:35 nick Exp $
+## $Id: tn,v 1.8 2013-02-25 14:35:24 nick Exp $
 ##
 ##   Please use the '--man' option for details on how this works.  Running
 ##   with no options will fall back to defaults and should work fine for
@@ -20,11 +20,12 @@ TN_SIZE=64
 MAX_COL=6
 FNAMES=0
 DIRECTORIES=0
+MISSING=0
 TN_DIR=thumbs
 TITLE="`hostname`:`pwd`"
-
+ALL=$*
 FILE_TYPES='jpg png jpeg gif'
-VERSION="$Id: tn,v 1.7 2011-02-24 13:57:35 nick Exp $"
+VERSION="$Id: tn,v 1.8 2013-02-25 14:35:24 nick Exp $"
 
 ###############################################################################
 ##
@@ -45,7 +46,9 @@ Usage:
            --help,?     Display the basic help menu
 	   --htmlfile	HTML filename to write to (default index.html)
            --man,m      Display the detailed man page
+	   --missing	Only generate thumbs for missing thumbs
 	   --size	Set the thumbnail size (default 64x64)
+	   --sort	Use 'sort' to order the images within the HTML
 	   --title	Title of HTML page (default 'hostname - current dir') 
 	   --tndir	Thumbnail directory (default thumbs)
            --version    Display the version
@@ -89,6 +92,8 @@ The output is all dumped to HTML and saved to a file, by default index.html.  Th
 Display the detailed man page
 .IP "--size <size XxY>"
 This sets the default thumbnail size to pass to Imagemagick.  The default is 64x64.
+.IP "--missing"
+Using this setting will trigger the script to only generate thumbnails for images that do not currently have any.
 .IP "--title <title>"
 The page has a default title and header.  This will statically set that header.
 .IP "--tndir <directory name>"
@@ -96,7 +101,7 @@ The thumbnails can be saved in a seperate directory.  This directory name may no
  "--version"
 Display the version
 .SH "SEE ALSO"
-man(1)	convert(1)
+man(1)	convert(1) sort(1)
 .SH "BUGS"
 .I Template.sh
 is a work in progress.  Please report bugs.
@@ -165,9 +170,15 @@ do
                         man
                         break
                         ;;
+		--missing)
+			MISSING=1
+			;;
 		--size)
 			TN_SIZE=$1
 			shift
+			;;
+		--sort)
+			SORT=1
 			;;
 		--title)
 			TITLE=$1
@@ -211,7 +222,7 @@ cat <<EOF>$HTML
   </head>
   <body bgcolor="#F2F2F2">
 <h1>$TITLE</h1>
-<table align="center" border="0">
+<table align="center" border="0" cellpadding="2">
 <tr>
 EOF
 
@@ -219,9 +230,13 @@ TIFS=$IFS
 CNT=0
 for i in $FILE_TYPES; do
 	IFS=$(echo -en "\n\b")
-	for n in `find -maxdepth 1 -type f -iname \*.$i`; do 
+	[ $SORT ] && \
+		FILES=`/usr/bin/find -maxdepth 1 -type f -iname \*.$i | sort` || \
+		FILES=`/usr/bin/find -maxdepth 1 -type f -iname \*.$i`
+	for n in $FILES; do 
 		TN=`basename $n .$i`-tn.$i;
-		$CONVERT -resize $TN_SIZE $n $TN_DIR/$TN
+		[ $MISSING -eq 1 ] && [ -f $TN_DIR/$TN ] || \
+			$CONVERT -resize $TN_SIZE $n $TN_DIR/$TN
 		[ $CNT -ge $MAX_COL ] && \
 		{
 			echo -e "</tr>\n<tr>" >>$HTML
@@ -265,7 +280,7 @@ cat <<EOF>>$HTML
 <center>
 	<font size="0">
 		Generated on <b>`date`</b>.<br/>
-		Generated with command <b>'$0 $*'</b> by <b>`whoami`</b>.
+		Generated with command <b>'$0 $ALL'</b> by <b>`whoami`</b>.
 	</font>
   <p>
     <a href="http://validator.w3.org/check?uri=referer"><img
