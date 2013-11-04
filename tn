@@ -24,8 +24,9 @@ MISSING=0
 TN_DIR=thumbs
 TITLE="`hostname`:`pwd`"
 ALL=$*
-FILE_TYPES='jpg png jpeg gif'
+FILE_TYPES='jpg png jpeg gif mp4 mpg m4v avi mov wmv'
 VERSION="$Id: tn,v 1.8 2013-02-25 14:35:24 nick Exp $"
+
 
 ###############################################################################
 ##
@@ -47,6 +48,7 @@ Usage:
 	   --htmlfile	HTML filename to write to (default index.html)
            --man,m      Display the detailed man page
 	   --missing	Only generate thumbs for missing thumbs
+	   --novideo	Skip generating video thumnails
 	   --size	Set the thumbnail size (default 64x64)
 	   --sort	Use 'sort' to order the images within the HTML
 	   --title	Title of HTML page (default 'hostname - current dir') 
@@ -173,6 +175,9 @@ do
 		--missing)
 			MISSING=1
 			;;
+		--novideo)
+			NOVIDEO=1
+			;;
 		--size)
 			TN_SIZE=$1
 			shift
@@ -234,18 +239,34 @@ for i in $FILE_TYPES; do
 		FILES=`/usr/bin/find -maxdepth 1 -type f -iname \*.$i | sort` || \
 		FILES=`/usr/bin/find -maxdepth 1 -type f -iname \*.$i`
 	for n in $FILES; do 
-		TN=`basename $n .$i`-tn.$i;
-		[ $MISSING -eq 1 ] && [ -f $TN_DIR/$TN ] || \
-			$CONVERT -resize $TN_SIZE $n $TN_DIR/$TN
+		file $n | grep -q -ie video -e media -e sequence -e movie && \
+		{
+			echo "Convert Video Sequence: $n"
+			TN=`basename $n .$i`-tn.gif
+			[ $MISSING -eq 1 ] && [ -f $TN_DIR/$TN ] || \
+			{
+				tmpfile=$(mktemp -d)
+				for cap in $(seq -w 1 5 99); do 
+					/usr/bin/ffmpegthumbnailer -s $TN_SIZE -i $n -o $tmpfile/thumb-${cap}.jpg -t ${cap}%
+				done
+				$CONVERT -delay 30 -loop 0 $tmpfile/thumb*.jpg $TN_DIR/$TN
+				rm -rf $tmpfile
+			}
+		} || {
+			echo "Convert still image: $n"
+			TN=`basename $n .$i`-tn.$i;
+			[ $MISSING -eq 1 ] && [ -f $TN_DIR/$TN ] || \
+				$CONVERT -resize $TN_SIZE $n $TN_DIR/$TN
+		}
 		[ $CNT -ge $MAX_COL ] && \
 		{
 			echo -e "</tr>\n<tr>" >>$HTML
 			CNT=0
 		}
-
+	
 		[ $FNAMES -eq 0 ] || \
 			IMAGE_NAME="<br/><font size=\"0\">`basename $n`</font>"
-
+	
 		cat <<EOF>>$HTML
 <td align="center" valign="middle">
 <a href="$n"><img src="$TN_DIR/$TN" alt="$n" border="0" /></a>&nbsp;
