@@ -4,7 +4,7 @@
 ## Generate Thumbnails and an index.html in a gallery-esque fashion
 ## Nicholas DeClario <nick@demandred.dyndns.org>
 ## February 2011
-## $Id: tn,v 1.8 2013-02-25 14:35:24 nick Exp $
+## $Id: tn,v 1.11 2013-11-04 18:11:19 nick Exp $
 ##
 ##   Please use the '--man' option for details on how this works.  Running
 ##   with no options will fall back to defaults and should work fine for
@@ -23,11 +23,12 @@ FNAMES=0
 DIRECTORIES=0
 MISSING=0
 NOVIDEO=0
+FSIZE=0
 TN_DIR=thumbs
 TITLE="`hostname`:`pwd`"
 ALL=$*
 FILE_TYPES='jpg png jpeg gif mp4 mpg m4v avi mov wmv'
-VERSION="$Id: tn,v 1.8 2013-02-25 14:35:24 nick Exp $"
+VERSION="$Id: tn,v 1.11 2013-11-04 18:11:19 nick Exp $"
 
 
 ###############################################################################
@@ -52,6 +53,7 @@ Usage:
            --man,m      Display the detailed man page
 	   --missing	Only generate thumbs for missing thumbs
 	   --novideo	Skip generating video thumnails
+	   --showsize	Display the size of the file beneath the thumbnail
 	   --size	Set the thumbnail size (default 64x64)
 	   --sort	Use 'sort' to order the images within the HTML
 	   --title	Title of HTML page (default 'hostname - current dir') 
@@ -184,6 +186,9 @@ do
 		--novideo)
 			NOVIDEO=1
 			;;
+		--showsize)
+			FSIZE=1
+			;;
 		--size)
 			TN_SIZE=$1
 			shift
@@ -285,11 +290,14 @@ for i in $FILE_TYPES; do
 	
 		[ $FNAMES -eq 0 ] || \
 			IMAGE_NAME="<br/><font size=\"0\">`basename $n`</font>"
+		[ $FSIZE -eq 1 ] && \
+			FILE_SIZE="<br /><font size=\"0\">$( ls -sh $n | awk '{print $1}')</font>"
 	
 		cat <<EOF>>$HTML
 <td align="center" valign="middle">
 <a href="$n"><img src="$TN_DIR/$TN" alt="$n" border="0" /></a>&nbsp;
 $IMAGE_NAME
+$FILE_SIZE
 </td>
 EOF
 		CNT=$(( CNT + 1 ))
