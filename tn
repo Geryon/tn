@@ -15,12 +15,14 @@
 ##
 ## These are default options, feel free to manipulate these.
 ##
+declare FORCE=0
 HTML="index.html"
 TN_SIZE=64
 MAX_COL=6
 FNAMES=0
 DIRECTORIES=0
 MISSING=0
+NOVIDEO=0
 TN_DIR=thumbs
 TITLE="`hostname`:`pwd`"
 ALL=$*
@@ -44,6 +46,7 @@ Usage:
 	   --columns	Number of columns for images (default 6)
 	   --dir	Enable links for sub directories (default off)
 	   --filenames	Display filename of image below thumbnail (default off)
+	   --force	Force overwriting the specified html file
            --help,?     Display the basic help menu
 	   --htmlfile	HTML filename to write to (default index.html)
            --man,m      Display the detailed man page
@@ -164,6 +167,9 @@ do
 		--filenames)
 			FNAMES=1
 			;;
+		--force)
+			FORCE=1
+			;;
 		--htmlfile)
 			HTML=$1
 			shift
@@ -214,8 +220,23 @@ CONVERT=/usr/bin/convert
 	exit 1
 }
 
+##
+## Make sure ffmpegthumbnailer is installed
+##
+FFMPEGTHUMBNAILER=/usr/bin/ffmpegthumbnailer
+[ -x $FFMPEGTHUMBNAILER ] || [ $NOVIDEO -eq 1 ] || \
+{
+	echo "ERROR: ffmpegthumbnailer required for video thumbnails"
+	exit 1
+}
 
 [ -d $TN_DIR ] || mkdir $TN_DIR
+
+[ -f $HTML ] && [ $FORCE -eq 0 ] && \
+{
+	echo "ERROR: $HTML exists, use --force to overwrite"
+	exit 1
+}
 
 cat <<EOF>$HTML
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -241,19 +262,17 @@ for i in $FILE_TYPES; do
 	for n in $FILES; do 
 		file $n | grep -q -ie video -e media -e sequence -e movie && \
 		{
-			echo "Convert Video Sequence: $n"
 			TN=`basename $n .$i`-tn.gif
 			[ $MISSING -eq 1 ] && [ -f $TN_DIR/$TN ] || \
 			{
 				tmpfile=$(mktemp -d)
 				for cap in $(seq -w 1 5 99); do 
-					/usr/bin/ffmpegthumbnailer -s $TN_SIZE -i $n -o $tmpfile/thumb-${cap}.jpg -t ${cap}%
+					$FFMPEGTHUMBNAILER -s $TN_SIZE -i $n -o $tmpfile/thumb-${cap}.jpg -t ${cap}%
 				done
 				$CONVERT -delay 30 -loop 0 $tmpfile/thumb*.jpg $TN_DIR/$TN
 				rm -rf $tmpfile
 			}
 		} || {
-			echo "Convert still image: $n"
 			TN=`basename $n .$i`-tn.$i;
 			[ $MISSING -eq 1 ] && [ -f $TN_DIR/$TN ] || \
 				$CONVERT -resize $TN_SIZE $n $TN_DIR/$TN
