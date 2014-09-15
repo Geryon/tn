@@ -18,7 +18,7 @@
 declare FORCE=0
 HTML="index.html"
 TN_SIZE=128
-MAX_COL=4
+declare -i MAX_COL=4
 FNAMES=0
 DIRECTORIES=0
 MISSING=0
@@ -26,7 +26,7 @@ NOVIDEO=0
 FSIZE=0
 IMAGESIZE=0
 TN_DIR=thumbs
-TITLE="`hostname`:`pwd`"
+TITLE="$(hostname):$(pwd)"
 ALL=$*
 FILE_TYPES='jpg png jpeg gif mp4 mpg m4v avi mov wmv'
 VERSION="$Id: tn,v 1.11 2013-11-04 18:11:19 nick Exp $"
@@ -77,7 +77,7 @@ EOF
 ###############################################################################
 man( ) {
         cat <<EOF | nroff -man
-.TH template.sh 1 "`date`" 
+.TH template.sh 1 "$(date)" 
 .SH NAME
 tn \- Thumbnail and HTML "gallery-esque" generator
 .SH SYNOPSIS
@@ -240,15 +240,15 @@ FFMPEGTHUMBNAILER=/usr/bin/ffmpegthumbnailer
 	exit 1
 }
 
-[ -d $TN_DIR ] || mkdir $TN_DIR
+[ -d $"TN_DIR" ] || mkdir "$TN_DIR"
 
-[ -f $HTML ] && [ $FORCE -eq 0 ] && \
+[ -f "$HTML" ] && [ $FORCE -eq 0 ] && \
 {
 	echo "ERROR: $HTML exists, use --force to overwrite"
 	exit 1
 }
 
-cat <<EOF>$HTML
+cat <<EOF >$HTML
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -270,40 +270,41 @@ CNT=0
 for i in $FILE_TYPES; do
 	IFS=$(echo -en "\n\b")
 	[ $SORT ] && \
-		FILES=`/usr/bin/find -maxdepth 1 -type f -iname \*.$i | sort` || \
-		FILES=`/usr/bin/find -maxdepth 1 -type f -iname \*.$i`
+		FILES=$(/usr/bin/find -maxdepth 1 -type f -iname \*."$i" | sort) || \
+		FILES=$(/usr/bin/find -maxdepth 1 -type f -iname \*."$i")
 	for n in $FILES; do 
-		file $n | grep -q -ie video -e media -e sequence -e movie && \
+		file "$n" | grep -q -ie video -e media -e sequence -e movie && \
 		{
-			TN=`basename $n .$i`-tn.gif
-			[ $MISSING -eq 1 ] && [ -f $TN_DIR/$TN ] || \
+			TN=$(basename "$n" ."$i")-tn.gif
+			[ $MISSING -eq 1 ] && [ -f "$TN_DIR"/"$TN" ] || \
 			{
 				tmpfile=$(mktemp -d)
 				for cap in $(seq -w 1 5 99); do 
-					$FFMPEGTHUMBNAILER -s $TN_SIZE -i $n -o $tmpfile/thumb-${cap}.jpg -t ${cap}%
+                    out="$tmpfile/thumb-${cap}.jpg"
+					$FFMPEGTHUMBNAILER -s "$TN_SIZE" -i "$n" -o "$out" -t "${cap}"%
 				done
-				$CONVERT -delay 30 -loop 0 $tmpfile/thumb*.jpg $TN_DIR/$TN
-				rm -rf $tmpfile
+				$CONVERT -delay 30 -loop 0 "$tmpfile"/thumb*.jpg "$TN_DIR"/"$TN"
+				rm -rf "$tmpfile"
 			}
 		} || {
-			TN=`basename $n .$i`-tn.$i;
-			[ $MISSING -eq 1 ] && [ -f $TN_DIR/$TN ] || \
-				$CONVERT -resize $TN_SIZE $n $TN_DIR/$TN
+			TN=$(basename "$n" ."$i")-tn.$i;
+			[ $MISSING -eq 1 ] && [ -f "$TN_DIR"/"$TN" ] || \
+				$CONVERT -resize "$TN_SIZE" "$n" "$TN_DIR"/"$TN"
 		}
 		[ $CNT -ge $MAX_COL ] && \
 		{
-			echo -e "</tr>\n<tr>" >>$HTML
+			echo -e "</tr>\n<tr>" >>"$HTML"
 			CNT=0
 		}
 	
 		[ $FNAMES -eq 0 ] || \
-			IMAGE_NAME="<br/><font size=\"0\">`basename $n`</font>"
+			IMAGE_NAME="<br/><font size=\"0\">$(basename "$n")</font>"
 		[ $FSIZE -eq 1 ] && \
-			FILE_SIZE="<br /><font size=\"0\">$( ls -sh $n | awk '{print $1}')</font>"
+			FILE_SIZE="<br /><font size=\"0\">$( ls -sh "$n" | awk '{print $1}')</font>"
         [ $IMAGESIZE -eq 1 ] && \
-            IMG_SIZE="<br /><font size=\"0\">$( exiftool $n | grep "Image Size" | sed 's/.*: //')</font>"
+            IMG_SIZE="<br /><font size=\"0\">$( exiftool "$n" | grep "Image Size" | sed 's/.*: //')</font>"
     
-		cat <<EOF>>$HTML
+		cat <<EOF >>$HTML
 <td align="center">
 <a href="$n"><img src="$TN_DIR/$TN" alt="$n" border="0" /></a>&nbsp;
 $IMAGE_NAME
@@ -322,25 +323,25 @@ IFS=$(echo -en "\n\b")
 [ $DIRECTORIES -eq 0 ] || \
 {
 	echo -e "</tr>\n<tr>\n<td colspan=\"$MAX_COL\">\n\t<ul>"
-	for dir in `find . -maxdepth 1 -type d`; do
-		dir=`basename $dir`
+	for dir in $(find . -maxdepth 1 -type d); do
+		dir=$(basename "$dir")
 		[ "$dir" != "$TN_DIR" ] && [ "$dir" != "." ] && \
 			echo -e "\t\t<li><a href=\"$dir\">$dir</a></li>"
 	done
 	echo -e "\t</ul>\n</td>"
-} >> $HTML
+} >> "$HTML"
 IFS=$TIFS
 
-cat <<EOF>>$HTML
+cat <<EOF >>"$HTML"
 </tr>
 </table>
 <div id="footer">
 <hr/>
     <p class="footer_tn">
-		Generated on <b>`date`</b>.
+		Generated on <b>$(date)</b>.
     </p>
     <p class="footer_tn">
-		Generated with command <b>'$0 $ALL'</b> by <b>`whoami`</b>
+		Generated with command <b>'$0 $ALL'</b> by <b>$(whoami)</b>
     </p>
     <a href="http://validator.w3.org/check?uri=referer"><img
         src="http://www.w3.org/Icons/valid-xhtml10-blue" border="0"
