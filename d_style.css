@@ -1,0 +1,53 @@
+/* This CSS was originally from http://davehope.co.uk/Blog */
+
+body{font-family:'Bitstream Vera Sans','DejaVu Sans',Tahoma,sans-serif;font-size:12px;background:#085E95 url('http://demandred.dyndns.org/images/bg5.jpg') no-repeat center bottom fixed}
+a{color:#CF5311;font-weight:bold}
+h1 a{color:#000;font-size:x-large;text-decoration:none}
+#main{width:80%;margin:0 auto;padding-bottom:2px; padding: 2px; background:url('http://demandred.dyndns.org/images/t40.png')}
+#title{margin-left:10%;font-size:xx-large;font-weight:bold;margin-top:20px;margin-bottom:20px;padding-left:14px;color:#000}
+#search{margin-left:10%;font-size:12px;font-weight:bold;margin-top:20px;margin-bottom:20px;padding-left:14px;color:#000}
+#footer{font-size: 10px; font-weight: bold; margin-top: 20px; text-align: center;}
+p{font-weight: bold;}
+p.footer{font-size: 10px; font-weight: bold; text-align: center; padding: 0px; line-height: 65%; color: #111111;}
+p.footer_tn{font-size: 12px; font-weight: normal; text-align: center; padding: 0px; line-height: 85%; color: #000000; font-family: "Courier New", Courier, monospace;}
+.menu{color:#fff;width:100%;overflow:auto}
+.menu ul{margin:0;padding:0;list-style-type:none}
+.menu li{margin:10px 0 0 10px;padding:7px;float:left;font-weight:bold;text-transform:uppercase}
+.menu li:hover{background:url('http://demandred.dyndns.org/images/t40.png')}
+.menu li a{text-decoration:none;color:#fff}
+/* #content{background:#fff;padding:0 30px 30px;border:1px solid #000;margin:10px} */
+#content{padding:0 30px 30px;border:1px solid #000;margin:10px; padding: 5px; background:url('http://demandred.dyndns.org/images/t75w.png')}
+.blogPost{border-bottom:1px solid #E0E4CC;margin-bottom:10px}
+.postHist{background:#D14640;padding:10px}
+.postHist a{text-decoration:none;color:#fff;font-weight:bold}
+.more-link{background:#F38630;padding:10px;color:#fff;float:right;font-weight:bold;text-decoration:none}
+code,pre{display:block;font-family:Consolas,Inconsolata,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",monospace;color:#fff;background-color:#222;font-size:12px;line-height:14px;overflow:auto;padding:10px;margin:20px;max-height:220px}
+fieldset,a img{border:0}
+input[type="text"],textarea{border:2px solid #ccc;font-size:12px;color:#ababb1;padding:5px;color:#2d2d2f}
+label{float:left;width:175px}
+.formField{clear:both;margin:0 0 30px;display:block}
+/*Comments*/
+img.avatar{float:left;margin:0 15px 0 0;padding:4px}
+ul.commentlist{margin:0;padding:0;list-style-type:none}
+.commentlist li{margin:25px 0 0}
+.commentlist li div {background:#eee;border-radius:10px;padding:10px}
+.commentlist li div p{margin-left:75px}
+.children{list-style-type:none}
+/*Adverts*/
+div.sponsoredWords{background:#fff url('img/sponsoredWords.gif') no-repeat scroll left top;padding:10px;border-top:1px solid #D6D6D6;border-bottom:1px solid #D6D6D6;margin-bottom:15px}
+/* Page specific. */
+div.Message{margin:20px;padding:10px;border:3px dashed red;font-weight:bold}
+div.Message img{display:none}
+div.Message a{color:#000}
+.dl{padding:5px;height:50px;width:300px;border:1px solid #ccc}
+.dl a img{float:left;margin-right:5px}
+.dl:hover{border:1px solid #000;cursor:pointer}
+/* WP Styles */
+.aligncenter{display:block;margin:0 auto}
+.alignleft{float:left}
+.alignright{float:right;text-align:left}
+@media print{
+.menu{display:none}
+#title{display:none}
+#content{width:100%}
+}
