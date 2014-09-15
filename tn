@@ -17,13 +17,14 @@
 ##
 declare FORCE=0
 HTML="index.html"
-TN_SIZE=64
-MAX_COL=6
+TN_SIZE=128
+MAX_COL=4
 FNAMES=0
 DIRECTORIES=0
 MISSING=0
 NOVIDEO=0
 FSIZE=0
+IMAGESIZE=0
 TN_DIR=thumbs
 TITLE="`hostname`:`pwd`"
 ALL=$*
@@ -44,21 +45,22 @@ Usage:
     $0 [options]
 
     Options:
-	   --columns	Number of columns for images (default 6)
-	   --dir	Enable links for sub directories (default off)
-	   --filenames	Display filename of image below thumbnail (default off)
-	   --force	Force overwriting the specified html file
-           --help,?     Display the basic help menu
-	   --htmlfile	HTML filename to write to (default index.html)
-           --man,m      Display the detailed man page
-	   --missing	Only generate thumbs for missing thumbs
-	   --novideo	Skip generating video thumnails
-	   --showsize	Display the size of the file beneath the thumbnail
-	   --size	Set the thumbnail size (default 64x64)
-	   --sort	Use 'sort' to order the images within the HTML
-	   --title	Title of HTML page (default 'hostname - current dir') 
-	   --tndir	Thumbnail directory (default thumbs)
-           --version    Display the version
+        --columns   Number of columns for images (default 6)
+        --dir       Enable links for sub directories (default off)
+        --filenames Display filename of image below thumbnail (default off)
+        --force     Force overwriting the specified html file
+        --help,?    Display the basic help menu
+        --htmlfile  HTML filename to write to (default index.html)
+        --man,m     Display the detailed man page
+        --imagesize Display the image size/resolution
+        --missing   Only generate thumbs for missing thumbs
+        --novideo   Skip generating video thumnails
+        --showsize  Display the size of the file beneath the thumbnail
+        --size      Set the thumbnail size (default 64x64)
+        --sort      Use 'sort' to order the images within the HTML
+        --title     Title of HTML page (default 'hostname - current dir') 
+        --tndir     Thumbnail directory (default thumbs)
+        --version   Display the version
 
 EOF
 
@@ -176,10 +178,13 @@ do
 			HTML=$1
 			shift
 			;;
-                --man)
-                        man
-                        break
-                        ;;
+        --imagesize)
+            IMAGESIZE=1
+            ;;
+        --man)
+            man
+            break
+            ;;
 		--missing)
 			MISSING=1
 			;;
@@ -204,14 +209,14 @@ do
 			TN_DIR=$1
 			shift
 			;;
-                --version)
-                        echo "Version: $VERSION"
-                        break
-                        ;;
-                *)
-                        help
-                        break
-                        ;;
+        --version)
+            echo "Version: $VERSION"
+            break
+            ;;
+        *)
+            help
+            break
+            ;;
         esac
 done
 
@@ -250,10 +255,13 @@ cat <<EOF>$HTML
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>$TITLE</title>
+    <link rel="stylesheet" href="http://demandred.dyndns.org/d_style.css" type="text/css" media="screen" />
   </head>
   <body bgcolor="#F2F2F2">
-<h1>$TITLE</h1>
-<table align="center" border="0" cellpadding="2">
+<div id="title">$TITLE</div>
+<div id="main">
+<div id="content">
+<table width="100%" align="center" border="0" cellpadding="3">
 <tr>
 EOF
 
@@ -292,12 +300,15 @@ for i in $FILE_TYPES; do
 			IMAGE_NAME="<br/><font size=\"0\">`basename $n`</font>"
 		[ $FSIZE -eq 1 ] && \
 			FILE_SIZE="<br /><font size=\"0\">$( ls -sh $n | awk '{print $1}')</font>"
-	
+        [ $IMAGESIZE -eq 1 ] && \
+            IMG_SIZE="<br /><font size=\"0\">$( exiftool $n | grep "Image Size" | sed 's/.*: //')</font>"
+    
 		cat <<EOF>>$HTML
-<td align="center" valign="middle">
+<td align="center">
 <a href="$n"><img src="$TN_DIR/$TN" alt="$n" border="0" /></a>&nbsp;
 $IMAGE_NAME
 $FILE_SIZE
+${IMG_SIZE:=" "}
 </td>
 EOF
 		CNT=$(( CNT + 1 ))
@@ -322,23 +333,21 @@ IFS=$TIFS
 
 cat <<EOF>>$HTML
 </tr>
-<tr>
-<td colspan="$MAX_COL">
-<hr/>
-<center>
-	<font size="0">
-		Generated on <b>`date`</b>.<br/>
-		Generated with command <b>'$0 $ALL'</b> by <b>`whoami`</b>.
-	</font>
-  <p>
-    <a href="http://validator.w3.org/check?uri=referer"><img
-        src="http://www.w3.org/Icons/valid-xhtml10" border="0"
-        alt="Valid XHTML 1.0 Transitional" height="31" width="88" /></a>
-  </p>
-</center>
-</td>
-</tr>
 </table>
+<div id="footer">
+<hr/>
+    <p class="footer_tn">
+		Generated on <b>`date`</b>.
+    </p>
+    <p class="footer_tn">
+		Generated with command <b>'$0 $ALL'</b> by <b>`whoami`</b>
+    </p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-xhtml10-blue" border="0"
+        alt="Valid XHTML 1.0 Transitional" height="31" width="88" /></a>
+</div>
+</div>
+</div>
 </body>
 </html>
 EOF
